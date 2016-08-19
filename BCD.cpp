@@ -41,6 +41,38 @@ pdd round(pdd a){
 	return b;
 }
 
+void showMaxwellTriangle(map<pdd,long long int> M){
+	cv::Mat im(433,500,CV_8UC1,cv::Scalar(0));
+	cv::line(im,cv::Point(250,0),cv::Point(0,433),255,1);
+	cv::line(im,cv::Point(250,0),cv::Point(500,433),255,1);
+	cv::line(im,cv::Point(0,432),cv::Point(500,432),255,1);
+	double a11 = 250*sqrt(2);
+	double a12 = 0.0;
+	double c1 = 250.0;
+	double a21 = 0.0;
+	double a22 = -432*sqrt(2.0/3.0);
+	double c2 = 288 ; 
+	long long int maxCount = 0;
+	for(map<pdd,long long int>::iterator it=M.begin();it!=M.end();++it){
+		if(it->second > maxCount)maxCount = it->second;
+	}
+	for(map<pdd,long long int>::iterator it=M.begin();it!=M.end();++it){
+		it->second = (int)(it->second*255.0/maxCount);
+		if(it->second>255)it->second = 255;
+	}
+	for(map<pdd,long long int>::iterator it=M.begin();it!=M.end();++it){
+		double a=it->first.first;
+		double b=it->first.second;
+		double x = a11*a + a12*b + c1;
+		double y = a21*a + a22*b + c2;
+		if((int)im.at<uchar>((int)y,(int)x)<it->second)im.at<uchar>((int)y,(int)x) = (int)it->second;
+		//im.at<uchar>((int)y,(int)x) = 255;
+		cout<<x<<" "<<y<<" "<<it->second<<endl;
+	}
+	cv::imshow("maxwell",im);
+	cv::waitKey(0);
+}
+
 int main(int argc, char** argv){
 	cv::Mat im = cv::imread(argv[1],1);
 	cv::imshow("image",im);
@@ -55,7 +87,8 @@ int main(int argc, char** argv){
 			else maxwellMap[a]+=1;
 		}
 	}
-	for (map<pdd,long long int>::iterator it=maxwellMap.begin(); it!=maxwellMap.end(); ++it)
-    	cout <<"("<< it->first.first <<","<<it->first.second<<")" << " => " << it->second << endl;
+	/*for (map<pdd,long long int>::iterator it=maxwellMap.begin(); it!=maxwellMap.end(); ++it)
+    	cout <<"("<< it->first.first <<","<<it->first.second<<")" << " => " << it->second << endl;*/
+	showMaxwellTriangle(maxwellMap);
 	return 0;
 }
