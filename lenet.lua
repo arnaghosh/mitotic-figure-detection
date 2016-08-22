@@ -49,7 +49,7 @@ net:add(nn.LogSoftMax())
 criterion = nn.ClassNLLCriterion()
 trainer = nn.StochasticGradient(net,criterion)
 trainer.learningRate = 0.001
-trainer.maxIter = 5
+trainer.maxIter = 10
 trainer:train(trainset)
 
 
@@ -68,5 +68,24 @@ print(predicted:exp())
 for i=1,predicted:size(1) do
     print(classes[i], predicted[i])
 end
+
+correct = 0
+class_perform = {0,0,0,0,0,0,0,0,0,0}
+for i=1,10000 do
+    local groundtruth = testset.label[i]
+    local prediction = net:forward(testset.data[i])
+    local confidences, indices = torch.sort(prediction, true)  -- true means sort in descending order
+    if groundtruth == indices[1] then
+        correct = correct + 1
+        class_perform[groundtruth] = class_perform[groundtruth] + 1
+    end
+end
+
+print("Overall correct " .. correct .. " percentage correct" .. (100*correct/10000) .. " % ")
+for i=1,#classes do
+	print(classes[i], 100*class_perform[i]/1000 .. " % ")
+end
+
+
 
 
