@@ -139,7 +139,7 @@ void linearDecomposition(cv::Mat img, cv::Mat means){
 		double b = means_tfo.at<double>(i,0);
 		mean_colors.at<double>(0,i) = (a/sqrt(2.0)) - (b/sqrt(6.0)) + (1.0/3.0);
 		mean_colors.at<double>(1,i) = (-a/sqrt(2.0)) - (b/sqrt(6.0)) + (1.0/3.0);
-		mean_colors.at<double>(2,i) = 1.0 - a - b;
+		mean_colors.at<double>(2,i) = 1.0 - mean_colors.at<double>(0,i) - mean_colors.at<double>(1,i);
 	}
 	cv::Mat mean_colors_t,multiplied,inverted,mean_color_tfo_matrix;
 	cout<<"1"<<mean_colors.size()<<endl;
