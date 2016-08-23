@@ -41,6 +41,6 @@ for i=1,trSize do
 end
 
 for i=trSize+1,trSize+teSize do
-	testData.data[i] = imageAll[labelShuffle[i][1]]:clone()
-	trainData.labels[i] = labelAll[labelsShuffle[i]]
+	testData.data[i-trSize] = imageAll[labelShuffle[i][1]]:clone()
+	trainData.labels[i-trSize] = labelAll[labelsShuffle[i]]
 end
