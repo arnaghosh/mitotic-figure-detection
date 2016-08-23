@@ -265,12 +265,17 @@ cv::Mat EMMaxwellTriangle(map<pdd,long long int> M, int numClusters){
 
 	cv::imshow("maxwell",img);
 	cv::waitKey(0);
-	//return predicted;  /// uncomment this line for using simpleDecomposition
-	return means;	   /// uncomment this line for using linearDecompositon
+	return predicted;  /// uncomment this line for using simpleDecomposition
+	//return means;	   /// uncomment this line for using linearDecompositon
 }
 
 int main(int argc, char** argv){
+	if(argc!=3){
+		cout<<" arguments list:\n1. Image name with address on disk\n2.pyrDown yes/no -> 1 for Yes, 2 for No"<<endl;
+		return 0;
+	}
 	cv::Mat im = cv::imread(argv[1],1);
+	if (int(argv[2][0])==49)cv::pyrDown(im,im);
 	cv::imshow("image",im);
 	cout<<"image size: "<<im.rows<<" X "<<im.cols<<endl;
 	cv::waitKey(0);
@@ -286,7 +291,7 @@ int main(int argc, char** argv){
 	/*for (map<pdd,long long int>::iterator it=maxwellMap.begin(); it!=maxwellMap.end(); ++it)
     	cout <<"("<< it->first.first <<","<<it->first.second<<")" << " => " << it->second << endl;*/
 	//showMaxwellTriangle(maxwellMap);
-	cv::Mat predicted = EMMaxwellTriangle(maxwellMap,4);
-	linearDecomposition(im,predicted);
+	cv::Mat predicted = EMMaxwellTriangle(maxwellMap,3);
+	simpleDecomposition(im,predicted);
 	return 0;
 }
