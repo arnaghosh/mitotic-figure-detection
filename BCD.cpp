@@ -1,8 +1,3 @@
-/*
-To Do:-
-1. Linear Decomposition from means of Gaussian -> replace simple decomposition.
-
-*/
 
 #include <cv.h>
 #include <highgui.h>
