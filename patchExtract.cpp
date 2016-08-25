@@ -19,8 +19,18 @@ using namespace std;
 
 #define pii pair<int,int>
 
-int main(){
-	cv::Mat img = cv::imread("Training Data/A03/frames/x40/A03_00Aa.tiff",1);
+int main(int argc,char** argv){
+	if(argc!=4){
+		cout<<"\nArgument list: \n";
+		cout<<"1. Training or Testing Data -> 0 for training and 1 for testing.\n";
+		cout<<"2. Folder to extract image from. eg - A03 or A04.\n";
+		cout<<"3. Mitosis or mon-mitosis -> 0 for mitosis, 1 for non-mitosis. \n\n";
+		return 0;
+	}
+	string TrTeName[2] = {"Training Data","Testing Data"};
+	string mit[2] = {"mitosis","not_mitosis"};
+	string imName = TrTeName[atoi(argv[1])]+"/"+argv[2]+"/frames/x40/"+argv[2]+"_00Aa.tiff";
+	cv::Mat img = cv::imread(imName,1);
 	cv::Mat bin = cv::imread("1.jpg",0);
 	string filename = "Training Data/A03/mitosis/A03_00Aa_mitosis.csv";
 	cv::imshow("img",img);
