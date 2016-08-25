@@ -91,28 +91,29 @@ void showMaxwellTriangle(map<pdd,long long int> M){
 	cv::waitKey(0);
 }
 
-void simpleDecomposition(cv::Mat img, cv::Mat predicted){
+void simpleDecomposition(cv::Mat img, cv::Mat predicted, pdd roadColor){
+	pdd roadColorInImage = Maxwell2image(round(roadColor));
+	int roadID = (int)predicted.at<float>(roadColorInImage.second,roadColorInImage.first);
+	cout<<"roadID:"<<roadID<<endl;
 	double min,max;
 	cv::minMaxLoc(predicted,&min,&max);
-	int numClusters = (int)max;
-	for(int k=0;k<=numClusters;k++){
-		cv::Mat disp(img.rows,img.cols,CV_8UC3,cv::Scalar(0,0,0));
-		for(int i=0;i<img.rows;i++){
-			for(int j=0;j<img.cols;j++){
-				pdd a =Maxwell2image(round(rgb2maxwell((int)img.at<cv::Vec3b>(i,j)[2],(int)img.at<cv::Vec3b>(i,j)[1],(int)img.at<cv::Vec3b>(i,j)[0])));
-				if((int)predicted.at<float>(a.second,a.first)==-1)cout<<"invert x,y"<<endl;
-				if((int)predicted.at<float>(a.second,a.first)==k){
-					disp.at<cv::Vec3b>(i,j)[0] = img.at<cv::Vec3b>(i,j)[0];
-					disp.at<cv::Vec3b>(i,j)[1] = img.at<cv::Vec3b>(i,j)[1];
-					disp.at<cv::Vec3b>(i,j)[2] = img.at<cv::Vec3b>(i,j)[2];
-				}
+	//int numClusters = (int)max;
+	cv::Mat disp(img.rows,img.cols,CV_8UC3,cv::Scalar(0,0,0));
+	for(int i=0;i<img.rows;i++){
+		for(int j=0;j<img.cols;j++){
+			pdd a =Maxwell2image(round(rgb2maxwell((int)img.at<cv::Vec3b>(i,j)[2],(int)img.at<cv::Vec3b>(i,j)[1],(int)img.at<cv::Vec3b>(i,j)[0])));
+			if((int)predicted.at<float>(a.second,a.first)==-1)cout<<"invert x,y"<<endl;
+			if((int)predicted.at<float>(a.second,a.first)==roadID){
+				disp.at<cv::Vec3b>(i,j)[0] = img.at<cv::Vec3b>(i,j)[0];
+				disp.at<cv::Vec3b>(i,j)[1] = img.at<cv::Vec3b>(i,j)[1];
+				disp.at<cv::Vec3b>(i,j)[2] = img.at<cv::Vec3b>(i,j)[2];
 			}
 		}
-		string s = "disp_"+to_string(k);
+	}
+		string s = "disp_"+to_string(roadID);
 		cv::imshow(s,disp);
 		cv::waitKey(0);
 		cv::imwrite(s+".jpg",disp);
-	}
 }
 
 void printMat(cv::Mat M){
@@ -181,7 +182,7 @@ void linearDecomposition(cv::Mat img, cv::Mat means){
 
 }
 
-cv::Mat EMMaxwellTriangle(map<pdd,long long int> M, int numClusters){
+cv::Mat EMMaxwellTriangle(map<pdd,long long int> M, int numClusters, pdd roadColor){
 	cv::Mat im(600,600,CV_32FC1,cv::Scalar(0));
 	double a11 = 250*sqrt(2);
 	double a12 = 0.0;
@@ -258,22 +259,43 @@ cv::Mat EMMaxwellTriangle(map<pdd,long long int> M, int numClusters){
         }
     }
 
+    pdd roadColorInImage = Maxwell2image(round(roadColor));
+    cv::circle(img,cv::Point(roadColorInImage.first,roadColorInImage.second),5,cv::Scalar(255,255,255),-1);
 	cv::imshow("maxwell",img);
 	cv::waitKey(0);
 	return predicted;  /// uncomment this line for using simpleDecomposition
 	//return means;	   /// uncomment this line for using linearDecompositon
 }
 
+
+int donePoints=0;
+vector<cv::Point> testPoints;
+void CallBackFunc(int event, int x, int y, int flags, void* userdata)
+{
+     if  ( event == cv::EVENT_LBUTTONDOWN )
+     {
+     	testPoints.push_back(cv::Point(y,x));
+		donePoints++;
+     }
+     
+}
+
+
 int main(int argc, char** argv){
-	if(argc!=3){
-		cout<<" arguments list:\n1. Image name with address on disk\n2.pyrDown yes/no -> 1 for Yes, 2 for No"<<endl;
+	if(argc!=4){
+		cout<<"\nArguments list:\n1. Image name with address on disk\n2.pyrDown yes/no -> 1 for Yes, 2 for No\n3. No. of road points"<<endl;
 		return 0;
 	}
+	int numOfPoints = atoi(argv[3]);
 	cv::Mat im = cv::imread(argv[1],1);
 	if (int(argv[2][0])==49)cv::pyrDown(im,im);
-	cv::imshow("image",im);
 	cout<<"image size: "<<im.rows<<" X "<<im.cols<<endl;
-	cv::waitKey(0);
+	cv::namedWindow("image",1);
+	cv::setMouseCallback("image",CallBackFunc,NULL);
+	cv::imshow("image",im);
+	while(donePoints<numOfPoints){
+		cv::waitKey(30);
+	}
 	map<pdd,long long int> maxwellMap;
 	for(int i=0;i<im.rows;i++){
 		for(int j=0;j<im.cols;j++){
@@ -286,7 +308,18 @@ int main(int argc, char** argv){
 	/*for (map<pdd,long long int>::iterator it=maxwellMap.begin(); it!=maxwellMap.end(); ++it)
     	cout <<"("<< it->first.first <<","<<it->first.second<<")" << " => " << it->second << endl;*/
 	//showMaxwellTriangle(maxwellMap);
-	cv::Mat predicted = EMMaxwellTriangle(maxwellMap,3);
-	simpleDecomposition(im,predicted);
+	pdd roadColors[numOfPoints];
+	pdd avgRoadColor(0,0);
+	for(int i=0;i<numOfPoints;i++){
+		int x = (int)testPoints[i].x;
+		int y = (int)testPoints[i].y;
+		cout<<testPoints[i].x<<testPoints[i].y<<endl;
+		roadColors[i] = rgb2maxwell((int)im.at<cv::Vec3b>(x,y)[2],(int)im.at<cv::Vec3b>(x,y)[1],(int)im.at<cv::Vec3b>(x,y)[0]);
+		avgRoadColor.first+=roadColors[i].first;
+		avgRoadColor.second+=roadColors[i].second;
+	}
+	avgRoadColor.first/=numOfPoints;avgRoadColor.second/=numOfPoints;
+	cv::Mat predicted = EMMaxwellTriangle(maxwellMap,3,avgRoadColor);
+	simpleDecomposition(im,predicted,avgRoadColor);
 	return 0;
 }
