@@ -2,8 +2,11 @@ import matplotlib.pyplot as plt
 from skimage.color import rgb2hed
 import cv2
 import numpy as np
+import sys
 
-img = cv2.imread("Training Data//A03/frames/x40/A03_00Aa.tiff",1)
+print("python: ",str(sys.argv[1]))
+img = cv2.imread(str(sys.argv[1]),1)
+#img = cv2.imread("Training Data/A03/frames/x40/A03_00Aa.tiff",1)
 #img = cv2.pyrDown(img)
 ihc_hed = rgb2hed(img)
 
@@ -17,9 +20,9 @@ thresh = cv2.erode(thresh,kernel,iterations=1)
 thresh = cv2.dilate(thresh,kernel,iterations=1)
 print ret
 
-cv2.imshow("1",thresh)
+#cv2.imshow("1",thresh)
 cv2.imwrite("1.jpg",thresh)
-cv2.waitKey(0)
+#cv2.waitKey(0)
 
 fig, axes = plt.subplots(2, 2, figsize=(7, 6), sharex=True, sharey=True, subplot_kw={'adjustable':'box-forced'})
 ax0, ax1, ax2, ax3 = axes.ravel()
@@ -41,7 +44,7 @@ for ax in axes.ravel():
     ax.axis('off')
 
 fig.subplots_adjust(hspace=0.3)
-plt.show()
+#plt.show()
 
 
 
