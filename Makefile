@@ -9,3 +9,5 @@ em: EM.cpp
 patch: patchExtract.cpp
 	g++ -g $^ -std=c++0x -o $@ -Wall `pkg-config opencv --cflags --libs`
 	
+testLS: testLS.cpp
+	g++ -g $^ -std=c++0x -o $@ -Wall `pkg-config opencv --cflags --libs`
