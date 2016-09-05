@@ -11,3 +11,7 @@ patch: patchExtract.cpp
 	
 testLS: testLS.cpp
 	g++ -g $^ -std=c++0x -o $@ -Wall `pkg-config opencv --cflags --libs`
+
+whiteBalance: batch_white_balance.cpp
+	g++ -g $^ -std=c++0x -o $@ -Wall `pkg-config opencv --cflags --libs`
+

@@ -13,15 +13,19 @@ ihc_hed = rgb2hed(img)
 min,max,minLoc,maxLoc = cv2.minMaxLoc(ihc_hed[:,:,2])
 print min,max
 
-ret,thresh = cv2.threshold(ihc_hed[:,:,2],min+(max-min)*0.6,255,cv2.THRESH_BINARY);
+ihc_hed = np.array(ihc_hed,dtype = 'float32');
+ret,thresh = cv2.threshold(ihc_hed[:,:,2],min+(max-min)*0.4,255,cv2.THRESH_BINARY);
+#thresh = ihc_hed[:,:,2]
+#ret = 0
 kernelSize = 5
-kernel = np.ones((kernelSize,kernelSize),np.uint8)
-thresh = cv2.erode(thresh,kernel,iterations=1)
-thresh = cv2.dilate(thresh,kernel,iterations=1)
-print ret
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+#thresh = cv2.erode(thresh,kernel,iterations=2)
+#thresh = cv2.dilate(thresh,kernel,iterations=2)
+#thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations=2)
+#print ret
 
 #cv2.imshow("1",thresh)
-cv2.imwrite("1.jpg",thresh)
+cv2.imwrite(sys.argv[2],thresh)
 #cv2.waitKey(0)
 
 fig, axes = plt.subplots(2, 2, figsize=(7, 6), sharex=True, sharey=True, subplot_kw={'adjustable':'box-forced'})
