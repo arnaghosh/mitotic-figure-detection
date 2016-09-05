@@ -14,14 +14,15 @@ min,max,minLoc,maxLoc = cv2.minMaxLoc(ihc_hed[:,:,2])
 print min,max
 
 ihc_hed = np.array(ihc_hed,dtype = 'float32');
-ret,thresh = cv2.threshold(ihc_hed[:,:,2],min+(max-min)*0.4,255,cv2.THRESH_BINARY);
+ret,thresh = cv2.threshold(ihc_hed[:,:,2],min+(max-min)*0.5,255,cv2.THRESH_BINARY);
 #thresh = ihc_hed[:,:,2]
 #ret = 0
 kernelSize = 5
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(kernelSize,kernelSize))
 #thresh = cv2.erode(thresh,kernel,iterations=2)
 #thresh = cv2.dilate(thresh,kernel,iterations=2)
-#thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations=2)
+#thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations=1)
+thresh = cv2.convertScaleAbs(thresh);thresh = cv2.medianBlur(thresh,9)
 #print ret
 
 #cv2.imshow("1",thresh)

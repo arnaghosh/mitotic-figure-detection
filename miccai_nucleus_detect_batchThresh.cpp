@@ -6,14 +6,14 @@ int main(){
 	string imFolderName = "training-set";
 	string path = "/media/arna/HP_32/Arna_Dataset/segmentation_training/";
 	for(int i=0;i<4;i++){
-		string sys_s = "ls "+path+folderName[i]+"/training-set/ | grep -v _ > ls_res.txt";
+		string sys_s = "ls "+path+folderName[i]+"/whiteBalanced-set/ | grep -v _ > ls_res.txt";
 		system(sys_s.c_str());
 		ifstream ls_res("ls_res.txt");
 		string imName;
 		while(ls_res.good()){
 			getline(ls_res,imName);
 			if(imName.empty())continue;
-			string sys_s2 = "python reg2hedTest.py /media/arna/HP_32/Arna_Dataset/segmentation_training/"+folderName[i]+"/training-set/"+imName+" /media/arna/HP_32/Arna_Dataset/segmentation_training/"+folderName[i]+"/maskedRes/"+imName;
+			string sys_s2 = "python reg2hedTest.py /media/arna/HP_32/Arna_Dataset/segmentation_training/"+folderName[i]+"/whiteBalanced-set/"+imName+" /media/arna/HP_32/Arna_Dataset/segmentation_training/"+folderName[i]+"/whiteBalanced_maskedBlur/"+imName;
 			system(sys_s2.c_str());
 		}
 	}
