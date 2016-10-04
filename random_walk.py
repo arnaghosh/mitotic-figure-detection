@@ -7,13 +7,15 @@ import sys
 
 im = cv2.imread(str(sys.argv[1]),1)
 binIm = cv2.imread(str(sys.argv[2]),0)
+cv2.pyrDown(im,im);
+cv2.pyrDown(binIm,binIm);
 comp = cv2.connectedComponentsWithStats(binIm,8,cv2.CV_16U)
 #labels = random_walker(im,markers,)
 print comp[0]
 labelIm = cv2.convertScaleAbs(comp[1]);
 markers = np.zeros(im.shape, dtype = np.uint)
 for i in range(1,len(comp[3])):
-	markers[int(comp[3][i][0])][int(comp[3][i][1])]=1;
+	cv2.circle(markers,)
 labels = random_walker(im, markers, beta=10, mode='bf')
 cv2.imshow("im",im);
 cv2.imshow("labels",labelIm);

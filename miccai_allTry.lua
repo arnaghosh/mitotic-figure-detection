@@ -79,18 +79,50 @@ for i=1,3 do
 end
 
 -- visualtisation part may be deleted. check before final run
-if opt.visualize then
-   local first256Samples_y = trainData.data[{ {1,256},1 }]
-   image.display{image=first256Samples_y, nrow=16, legend='Some training examples: Y channel'}
-   local first256Samples_y = testData.data[{ {1,256},1 }]
-   image.display{image=first256Samples_y, nrow=16, legend='Some testing examples: Y channel'}
-end
+--if opt.visualize then
+--   local first256Samples_y = trainData.data[{ {1,256},1 }]
+--   image.display{image=first256Samples_y, nrow=16, legend='Some training examples: Y channel'}
+--   local first256Samples_y = testData.data[{ {1,256},1 }]
+--   image.display{image=first256Samples_y, nrow=16, legend='Some testing examples: Y channel'}
+--end
 
 
-return {
-   trainData = trainData,
-   testData = testData,
-   mean = mean,
-   std = std,
-   classes = classes
-}
+D1 = nn.Sequential();
+D1:add(nn.SpatialConvolution(3,16,2,2));
+D1:add(nn.LeakyReLU(0.2,true));
+D1:add(nn.SpatialMaxPooling(2,2));
+-- size: 16 X 50 X 50
+D1:add(nn.SpatialConvolution(16,16,3,3));
+D1:add(nn.LeakyReLU(0.2,true));
+D1:add(nn.SpatialMaxPooling(2,2));
+-- size: 16 X 24 X 24
+D1:add(nn.SpatialConvolution(16,16,3,3));
+D1:add(nn.LeakyReLU(0.2,true));
+D1:add(nn.SpatialMaxPooling(2,2));
+-- size: 16 X 11 X 11
+D1:add(nn.SpatialConvolution(16,16,2,2));
+D1:add(nn.LeakyReLU(0.2,true));
+D1:add(nn.SpatialMaxPooling(2,2));
+-- size: 16 X 5 X 5
+D1:add(nn.SpatialConvolution(16,16,2,2));
+D1:add(nn.LeakyReLU(0.2,true));
+D1:add(nn.SpatialMaxPooling(2,2));
+-- size: 16 X 2 X 2
+D1:add(nn.View(16*2*2));
+D1:add(nn.Linear(16*2*2,100));
+D1:add(nn.Linear(100,2));
+
+print(D1);
+
+
+criterion = nn.ClassNLLCriterion()
+trainer = nn.StochasticGradient(D1,criterion)
+trainer.learningRate = 0.001
+trainer.maxIter = 10
+trainer:train(trainData)
+
+
+
+
+
+
