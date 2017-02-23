@@ -236,16 +236,16 @@ for f=1,(#Folds) do
 		else
 			if ((VFoldIndex_mit[j]-f+#(Folds))%#(Folds) >=5) then
 				valCount = valCount + 1
-				validateImageAll[valCount] = AllImages_mit[j];
+				validateImageAll[valCount] = VAllImages_mit[j];
 				validateLabelAll[valCount] = 1;
 			end
 		end
 	end
 	for j=1,(totalIm_mit) do
 		if ((FoldIndex_mit[j]-f+#(Folds))%#(Folds) <5) then
-			teCount = teCount+1;
-			testImageAll[teCount] = AllImages_mit[j];
-			testLabelAll[teCount] = 1;
+			trCount = trCount+1;
+			trainImageAll[trCount] = AllImages_mit[j];
+			trainLabelAll[trCount] = 1;
 		end
 	end
 	collectgarbage()
@@ -259,23 +259,23 @@ for f=1,(#Folds) do
 		else
 			if ((VFoldIndex_Nmit[j]-f+#(Folds))%#(Folds) >=5) then
 				valCount = valCount + 1
-				validateImageAll[valCount] = AllImages_Nmit[j];
+				validateImageAll[valCount] = VAllImages_Nmit[j];
 				validateLabelAll[valCount] = 2;
 			end
 		end
 	end
 	for j=1,(totalIm_Nmit) do
 		if ((FoldIndex_Nmit[j]-f+#(Folds))%#(Folds) <5) then
-			teCount = teCount+1;
-			testImageAll[teCount] = AllImages_Nmit[j];
-			testLabelAll[teCount] = 2;
+			trCount = trCount+1;
+			trainImageAll[trCount] = AllImages_Nmit[j];
+			trainLabelAll[trCount] = 2;
 		end
 	end
 
 	collectgarbage()
 	print("non-mitosis loading done")
 	
-	print(trSize,teSize)
+	print(trSize,valSize,teSize)
 	print((#trainLabelAll)[1])
 
 	local labelsShuffle = torch.randperm((#trainLabelAll)[1])
@@ -306,7 +306,36 @@ for f=1,(#Folds) do
 	for c=1,3 do
 		std[c] = torch.sqrt(sum[c]/counter);
 	end
-	print("preprocessing done :)");
+	print("training preprocessing done :)");
+
+	local Vmean = {}
+	local Vsum = {0,0,0}
+	local Vstd = {}
+	local Vcounter = 0;
+	local im=torch.CudaTensor(3,101,101);
+	for i=1,4 do --trSize do
+		im = image.load(validateImageAll[i]);
+		for c=1,3 do
+			Vsum[c] = Vsum[c]+im[{c,{},{}}]:sum();
+		end
+		Vcounter = Vcounter+(101*101);
+	end
+	for c=1,3 do
+		Vmean[c] = Vsum[c]/Vcounter;
+	end
+	Vsum = {0,0,0}
+	for i=1,4 do --trSize do
+		im = image.load(validateImageAll[i]);
+		for c=1,3 do
+			im[{c,{},{}}]:add(-Vmean[c]);
+			Vsum[c] = Vsum[c]+im[{c,{},{}}]:pow(2):sum();
+		end
+	end
+	for c=1,3 do
+		Vstd[c] = torch.sqrt(Vsum[c]/Vcounter);
+	end
+	local ValImagesInserted = torch.Tensor(valCount):zero();
+	print("validation preprocessing done :D");
 
 	local iteration =1;
 	local currentLearningRate = trainer.learningRate;
@@ -334,6 +363,26 @@ for f=1,(#Folds) do
 
 		currentError_ = currentError_ / trSize
 		print("#iteration "..iteration..": current error = "..currentError_);
+		if iteration>=10 then
+			for t=1,valSize do
+				input = image.load(validateImageAll[t]);
+	        	target = trainLabelAll[t]
+	      		for i=1,3 do
+				   -- normalize each channel globally:
+				   input[{{},i,{},{}}]:add(-mean[i])
+				   input[{{},i,{},{}}]:div(std[i])
+				end
+				local prediction = D2:forward(input:cuda())
+		    	local confidences, indices = torch.sort(prediction, true)
+		    	if target~=indices[1] then
+		    		if ValImagesInserted[t]==0 then
+		    			table.insert(trainImageAll,validateImageAll[t]);
+		    			trSize = trSize+1;
+		    			ValImagesInserted[t]=1;
+		    		end
+		    	end
+		    end
+		end
     	iteration = iteration + 1
       	currentLearningRate = trainer.learningRate/(1+iteration*trainer.learningRateDecay)
       	if trainer.maxIteration > 0 and iteration > trainer.maxIteration then
